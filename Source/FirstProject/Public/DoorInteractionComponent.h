@@ -18,7 +18,7 @@ public:
 	UDoorInteractionComponent();
 
 	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;	
 
 protected:
 	// Called when the game starts
@@ -32,8 +32,9 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	float TimeToRotate = 1.0f;
+	float CurrentRotationTime = 0.0f;	
 
-	float CurrentRotationTime = 0.0f;
+	bool DoorState;
 
 	UPROPERTY(EditAnywhere)
 	ATriggerBox* TriggerBox;
