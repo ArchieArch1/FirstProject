@@ -25,18 +25,20 @@ protected:
 	virtual void BeginPlay() override;
 
 	UPROPERTY(EditAnywhere)
-	FRotator DesiredRotationFront = FRotator::ZeroRotator;
+	float TimeToRotate;
+	float CurrentRotationTime;
+	
 	UPROPERTY(EditAnywhere)
-	FRotator DesiredRotationBack = FRotator::ZeroRotator;
-	FRotator StartRotation = FRotator::ZeroRotator;	
+	FRotator FrontRotation = FRotator::ZeroRotator;
 
 	UPROPERTY(EditAnywhere)
-	float TimeToRotate = 1.0f;
-	float CurrentRotationTime = 0.0f;	
+	FRotator BackRotation = FRotator::ZeroRotator;
+	FRotator StartRotation = FRotator::ZeroRotator;
+	FRotator CurrentRotation = FRotator::ZeroRotator;
 
 	UPROPERTY(EditAnywhere)
-	ATriggerBox* TriggerBoxBack;
+	ATriggerBox* BoxTriggerFront;
 
 	UPROPERTY(EditAnywhere)
-	ATriggerBox* TriggerBoxFront;
+	ATriggerBox* BoxTriggerBack;
 };
