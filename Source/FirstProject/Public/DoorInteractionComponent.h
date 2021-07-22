@@ -4,9 +4,19 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Curves/CurveFloat.h"
 #include "DoorInteractionComponent.generated.h"
 
 class ATriggerBox;
+class IConsoleVariable;
+
+//Door States for debugging
+UENUM()
+enum class EDoorState
+{
+	DS_Closed = 0 UMETA(DisplayName = "Closed"),
+	DS_Open = 1 UMETA(DisplayName = "Open")
+};
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class FIRSTPROJECT_API UDoorInteractionComponent : public UActorComponent
@@ -15,14 +25,16 @@ class FIRSTPROJECT_API UDoorInteractionComponent : public UActorComponent
 
 public:	
 	// Sets default values for this component's properties
-	UDoorInteractionComponent();
+	UDoorInteractionComponent();	
 
 	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;	
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	static void OnDebugToggled(IConsoleVariable* Var);
+	void DebugDraw();
 
 protected:
 	// Called when the game starts
-	virtual void BeginPlay() override;
+	virtual void BeginPlay() override;	
 
 	UPROPERTY(EditAnywhere)
 	float TimeToRotate;
@@ -41,4 +53,7 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	ATriggerBox* BoxTriggerBack;
+
+	UPROPERTY(BlueprintReadOnly)
+	EDoorState DoorState;
 };
