@@ -17,6 +17,7 @@ void UFPLogComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	//On object construction, output DataString which is set in the editor
 	UE_LOG(LogTemp, Warning, TEXT("UFPLogComponent::BeginPlay() %s"), *DataString);		
 }
 

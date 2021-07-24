@@ -32,7 +32,7 @@ UDoorInteractionComponent::UDoorInteractionComponent()
 void UDoorInteractionComponent::BeginPlay()
 {
 	Super::BeginPlay();	
-	CurrentRotationTime = 0;
+	CurrentRotationTime = 0.0f;
 	StartRotation = GetOwner()->GetActorRotation();
 }
 
@@ -40,65 +40,70 @@ void UDoorInteractionComponent::BeginPlay()
 void UDoorInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);	
-	
-	UE_LOG(LogTemp, Warning, TEXT("Current Rotation: %f"), CurrentRotation.Yaw);
-	UE_LOG(LogTemp, Warning, TEXT("Start Rotation: %f"), StartRotation.Yaw);
 
-	//If the box triggers, world and player can be found
-	if (BoxTriggerFront && BoxTriggerBack && GetWorld() && GetWorld()->GetFirstLocalPlayerFromController())
+	//If the door is closed, and the box triggers, world and player can be found
+	if (DoorState == EDoorState::DS_Closed)
 	{
-		//Setup player pawn and get the position of the door
-		APawn* PlayerPawn = GetWorld()->GetFirstPlayerController()->GetPawn();
-		CurrentRotation = GetOwner()->GetActorRotation();		
-
-		//BoxTriggerFront collision detected and door is closed (allow 2 degrees for lerp overshooting)
-		if (BoxTriggerFront->IsOverlappingActor(PlayerPawn) && CurrentRotation.Yaw <= (StartRotation.Yaw + 2))
+		if (BoxTriggerFront && BoxTriggerBack && GetWorld() && GetWorld()->GetFirstLocalPlayerFromController())
 		{
-			//Use Delta Time
-			CurrentRotationTime += DeltaTime;
+			//Setup pointer to the player pawn object
+			APawn* PlayerPawn = GetWorld()->GetFirstPlayerController()->GetPawn();
+			CurrentRotation = GetOwner()->GetActorRotation();
 
-			//Calculate AlphaRotation using FMath::Clamp method
-			const float AlphaRotation = FMath::Clamp(CurrentRotationTime / TimeToRotate, CurrentRotationTime, TimeToRotate);
-
-			//Use returned value from FMath::Lerp to update actor rotation
-			FRotator NewRotation = FMath::Lerp(StartRotation, BackRotation, AlphaRotation);
-			GetOwner()->SetActorRotation(NewRotation);
-
-			//Update doorstate for debug log
-			DoorState = EDoorState::DS_Open;
-
-			//Floor the CurrentRotationTime so it doesn't overshoot
-			if (CurrentRotationTime >= TimeToRotate)
+			//We need to know which direction the door is going to open, so check both front and back BoxTriggers
+			if (PlayerPawn && BoxTriggerBack->IsOverlappingActor(PlayerPawn))
 			{
-				CurrentRotationTime = FMath::Floor(CurrentRotationTime);
+				DoorState = EDoorState::DS_OpeningForwards;
+				CurrentRotationTime = 0.0f; //Experiment with removing these after
 			}
-		}		
 
-		//BoxTriggerBack detected and door is closed (allow 2 degrees for lerp overshooting)
-		else if (BoxTriggerBack->IsOverlappingActor(PlayerPawn) && CurrentRotation.Yaw >= (StartRotation.Yaw - 2))
+			else if (PlayerPawn && BoxTriggerFront->IsOverlappingActor(PlayerPawn))
+			{
+				DoorState = EDoorState::DS_OpeningBackwards;
+				CurrentRotationTime = 0.0f; //Experiment with removing these after
+			}
+		}
+	}
+
+	//If the door state is opening (any direction)
+	else if (DoorState == EDoorState::DS_OpeningForwards || DoorState == EDoorState::DS_OpeningBackwards)
+	{
+		//Use Delta Time
+		CurrentRotationTime += DeltaTime;
+
+		//Calculate AlphaRotation using FMath::Clamp method
+		const float AlphaRotation = FMath::Clamp(CurrentRotationTime / TimeToRotate, CurrentRotationTime, TimeToRotate);
+
+		//Choose lerp to use based on door direction
+		if (DoorState == EDoorState::DS_OpeningForwards)
 		{
-			//Use Delta Time
-			CurrentRotationTime += DeltaTime;
-
-			//Calculate AlphaRotation using FMath::Clamp method
-			const float AlphaRotation = FMath::Clamp(CurrentRotationTime / TimeToRotate, CurrentRotationTime, TimeToRotate);
-
 			//Use returned value from FMath::Lerp to update actor rotation
 			FRotator NewRotation = FMath::Lerp(StartRotation, FrontRotation, AlphaRotation);
 			GetOwner()->SetActorRotation(NewRotation);
-
-			//Update doorstate for debug log
-			DoorState = EDoorState::DS_Open;
-
-			//Floor the CurrentRotationTime so it doesn't overshoot
-			if (CurrentRotationTime >= TimeToRotate)
-			{
-				CurrentRotationTime = FMath::Floor(CurrentRotationTime);
-			}
 		}
 
+		else if (DoorState == EDoorState::DS_OpeningBackwards)
+		{
+			//Use returned value from FMath::Lerp to update actor rotation
+			FRotator NewRotation = FMath::Lerp(StartRotation, BackRotation, AlphaRotation);
+			GetOwner()->SetActorRotation(NewRotation);
+		}
+
+		if (CurrentRotationTime >= 1.0f)
+		{
+			DoorState = EDoorState::DS_Open;
+		}
+	}
+
+	//If door is open, it can close if the player is outside of the box triggers
+	else if (DoorState == EDoorState::DS_Open)
+	{
+		//Set current rotation so door position can be identified. Get the player pawn again as it is out of scope
+		CurrentRotation = GetOwner()->GetActorRotation();		
+		APawn* PlayerPawn = GetWorld()->GetFirstPlayerController()->GetPawn();
+
 		//If the player is outside of both triggers and the alpha is greater than 0, close door
-		else if (!BoxTriggerFront->IsOverlappingActor(PlayerPawn) && !BoxTriggerBack->IsOverlappingActor(PlayerPawn) && CurrentRotationTime >= 0)
+		if (!BoxTriggerFront->IsOverlappingActor(PlayerPawn) && !BoxTriggerBack->IsOverlappingActor(PlayerPawn) && CurrentRotationTime >= 0)
 		{
 			//Which direction does it need to close?
 			if (CurrentRotation.Yaw > StartRotation.Yaw)
@@ -110,30 +115,23 @@ void UDoorInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 
 				FRotator NewRotation = FMath::Lerp(StartRotation, FrontRotation, AlphaRotation);
 				GetOwner()->SetActorRotation(NewRotation);
-
-				//Floor the Rotation Yaw so the door doesn't overshoot, update doorstate for debug log
-				if (CurrentRotationTime <= 0)
-				{
-					DoorState = EDoorState::DS_Closed;
-					CurrentRotation.Yaw = FMath::Floor(CurrentRotation.Yaw);					
-				}
 			}
-			
+
 			if (CurrentRotation.Yaw < StartRotation.Yaw)
-			{		
+			{
 				//Close forwards
 				CurrentRotationTime -= DeltaTime;
 				const float AlphaRotation = FMath::Clamp(CurrentRotationTime / TimeToRotate, CurrentRotationTime, TimeToRotate);
 
 				FRotator NewRotation = FMath::Lerp(StartRotation, BackRotation, AlphaRotation);
 				GetOwner()->SetActorRotation(NewRotation);
+			}
 
-				//Floor the Rotation Yaw so the door doesn't overshoot, update doorstate for debug log				
-				if (CurrentRotationTime <= 0)
-				{
-					DoorState = EDoorState::DS_Closed;
-					CurrentRotation.Yaw = FMath::Floor(CurrentRotation.Yaw);					
-				}
+			//If door is closed, update state and reset CurrentRotation vector
+			if (CurrentRotationTime <= 0)
+			{
+				DoorState = EDoorState::DS_Closed;
+				CurrentRotation = FRotator::ZeroRotator;
 			}
 		}
 	}

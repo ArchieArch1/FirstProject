@@ -15,7 +15,10 @@ UENUM()
 enum class EDoorState
 {
 	DS_Closed = 0 UMETA(DisplayName = "Closed"),
-	DS_Open = 1 UMETA(DisplayName = "Open")
+	DS_Open = 1 UMETA(DisplayName = "Open"),
+	DS_OpeningForwards = 2 UMETA(DisplayName = "Opening Forwards"),
+	DS_OpeningBackwards = 3 UMETA(DisplayName = "Opening Backwards"),
+	DS_Locked = 4 UMETA(DisplayName = "Locked")
 };
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
