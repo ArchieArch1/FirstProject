@@ -5,8 +5,8 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "Curves/CurveFloat.h"
-#include "DoorInteractionComponent.generated.h"
 #include "ObjectiveWorldSubsystem.h"
+#include "DoorInteractionComponent.generated.h"
 
 class ATriggerBox;
 class IConsoleVariable;
