@@ -37,6 +37,7 @@ void UDoorInteractionComponent::BeginPlay()
 	CurrentRotationTime = 0.0f;
 	StartRotation = GetOwner()->GetActorRotation();
 
+	//********** Binding OpenedEvent event/multi-cast delegate **********
 	/*	Binding OpenedEvent to automatically call OnObjectiveCompleted when the event is broadcast
 		Alternatively we could grab the subsystem when the door is opened and directly call the function, but having the event system take care of it will help any checks in the case that the world sub system is destryoed, and in the future it will be better for multiple messsages being broadcast.
 		Generally we would want the objective world system to get the member vartiable (OpenedEvent) and bind itself	*/
@@ -44,9 +45,9 @@ void UDoorInteractionComponent::BeginPlay()
 	UObjectiveWorldSubsystem* ObjectiveWorldSubsystem = GetWorld()->GetSubsystem<UObjectiveWorldSubsystem>();
 	if (ObjectiveWorldSubsystem)
 	{
-		//Get comfortable with delegates
+		//This is the delegate bind. We are allowing OpenedEvent to access the OnObjectiveCompleted method in ObjectiveWorldSubsystem
 		//OpenedEvent now has a listener which is the ObjectiveWorldSubsystem
-		OpenedEvent.AddUObject(ObjectiveWorldSubsystem, &UObjectiveWorldSubsystem::OnObjectiveCompleted);
+		OpenedEvent.AddUObject(ObjectiveWorldSubsystem, &UObjectiveWorldSubsystem::OnObjectiveCompleted);		
 	}
 }
 

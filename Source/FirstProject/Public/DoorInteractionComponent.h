@@ -34,15 +34,19 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	
-	//********** OpenedEvent ********** 
-	//Declare the event (owning type, event name). We are saying that the owning type has a function called FOpened
+	//********** Declare OpenedEvent ********** 
+	/*	Declare the event (multi-class delegate). 
+		The owning type (FDoorInteractionComponent) is the only type which will have access to invoke the Event Broadcast, IsBounce and Clear functions
+		This event/multi-cast delegate will be binded to the ObjectiveWorldSubsystem (the UObject)
+		There can be multiple events using the FOpened type, so OpenedEvent is actually an object/variant?	*/
+
 	DECLARE_EVENT(FDoorInteractionComponent, FOpened)
 
-	//Callback function signature
-	FOpened& OnOpened() { return OpenedEvent; }
+	//Declare internal member variable. This is used 
+	FOpened OpenedEvent;	
 
-	//Declare internal member variable
-	FOpened OpenedEvent;		
+	//Callback function signature. Not sure what this is used for yet.
+	FOpened& OnOpened() { return OpenedEvent; }
 
 	static void OnDebugToggled(IConsoleVariable* Var);
 	void DebugDraw();
