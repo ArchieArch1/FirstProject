@@ -6,6 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "Curves/CurveFloat.h"
 #include "DoorInteractionComponent.generated.h"
+#include "ObjectiveWorldSubsystem.h"
 
 class ATriggerBox;
 class IConsoleVariable;
@@ -32,6 +33,17 @@ public:
 
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	
+	//********** OpenedEvent ********** 
+	//Declare the event (owning type, event name). We are saying that the owning type has a function called FOpened
+	DECLARE_EVENT(FDoorInteractionComponent, FOpened)
+
+	//Callback function signature
+	FOpened& OnOpened() { return OpenedEvent; }
+
+	//Declare internal member variable
+	FOpened OpenedEvent;		
+
 	static void OnDebugToggled(IConsoleVariable* Var);
 	void DebugDraw();
 

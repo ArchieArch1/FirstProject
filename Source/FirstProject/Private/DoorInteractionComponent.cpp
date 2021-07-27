@@ -6,6 +6,8 @@
 #include "GameFramework/PlayerController.h"
 #include "Engine/TriggerBox.h"
 #include "Engine/World.h"
+#include "ObjectiveWorldSubsystem.h"
+
 #include "DrawDebugHelpers.h"
 
 constexpr float FLT_METERS(float meters) { return meters * 100.0f; }
@@ -34,6 +36,18 @@ void UDoorInteractionComponent::BeginPlay()
 	Super::BeginPlay();	
 	CurrentRotationTime = 0.0f;
 	StartRotation = GetOwner()->GetActorRotation();
+
+	/*	Binding OpenedEvent to automatically call OnObjectiveCompleted when the event is broadcast
+		Alternatively we could grab the subsystem when the door is opened and directly call the function, but having the event system take care of it will help any checks in the case that the world sub system is destryoed, and in the future it will be better for multiple messsages being broadcast.
+		Generally we would want the objective world system to get the member vartiable (OpenedEvent) and bind itself	*/
+
+	UObjectiveWorldSubsystem* ObjectiveWorldSubsystem = GetWorld()->GetSubsystem<UObjectiveWorldSubsystem>();
+	if (ObjectiveWorldSubsystem)
+	{
+		//Get comfortable with delegates
+		//OpenedEvent now has a listener which is the ObjectiveWorldSubsystem
+		OpenedEvent.AddUObject(ObjectiveWorldSubsystem, &UObjectiveWorldSubsystem::OnObjectiveCompleted);
+	}
 }
 
 // Called every frame
@@ -92,6 +106,9 @@ void UDoorInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 		if (CurrentRotationTime >= 1.0f)
 		{
 			DoorState = EDoorState::DS_Open;
+			GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Yellow, TEXT("Door Opened"));
+			//Broadcast the opened door event
+			OpenedEvent.Broadcast();
 		}
 	}
 

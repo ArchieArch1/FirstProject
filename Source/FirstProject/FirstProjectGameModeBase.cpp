@@ -2,21 +2,22 @@
 
 
 #include "FirstProjectGameModeBase.h"
-#include "Kismet/GameplayStatics.h"
+#include "ObjectiveWorldSubsystem.h"
 
 void AFirstProjectGameModeBase::StartPlay()
 {
 	Super::StartPlay();
 
-	if (ObjectiveWidget == nullptr)
-	{
-		APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-		ObjectiveWidget = CreateWidget<UUserWidget>(PlayerController, ObjectiveWidgetClass);
-	}
+	//Create a pointer to the ObjectiveWorldSubsystem (ObjectiveWorldSubsystem.h & ObjectiveWorldSubsystem.cpp)
+	//We need to do this as we are dealing with objects which are responsible for the objective state, they are stored in the ObjectiveWorldSubsystem
+	UObjectiveWorldSubsystem* ObjectiveWorldSubsystem = GetWorld()->GetSubsystem<UObjectiveWorldSubsystem>();
 
-	if (ObjectiveWidget)
+	if (ObjectiveWorldSubsystem)
 	{
-		ObjectiveWidget->AddToViewport();
+		//Call back functions to create and display the objective widget
+		//CreateObjectiveWidget calls UUserWidge::*CreateWidget, this is why the widget object created in the gameloop doesn't need to be a pointer/ref
+		ObjectiveWorldSubsystem->CreateObjectiveWidget(ObjectiveWidgetClass);
+		ObjectiveWorldSubsystem->DisplayObjectiveWidget();		
 	}
 }
 
