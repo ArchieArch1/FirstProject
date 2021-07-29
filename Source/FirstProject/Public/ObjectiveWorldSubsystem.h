@@ -6,6 +6,7 @@
 #include "GameFramework/GameModeBase.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "Blueprint/UserWidget.h"
+#include "ObjectiveComponent.h"
 #include "ObjectiveWorldSubsystem.generated.h"
 
 UCLASS()
@@ -27,9 +28,23 @@ public:
 	void CreateObjectiveWidget(TSubclassOf<UUserWidget> ObjectiveWidgetClass);
 	void DisplayObjectiveWidget();
 
-	void OnObjectiveCompleted();
+	//This function is access in the widget blueprints
+	UFUNCTION(BlueprintCallable)
+	FString GetCurrentObjectiveDescription();
+
+	UFUNCTION(BlueprintCallable)
+	void AddObjective(UObjectiveComponent* ObjectiveComponent);
+
+	UFUNCTION(BlueprintCallable)
+	void RemoveObjective(UObjectiveComponent* ObjectiveComponent);
+
+	void OnObjectiveStateChanged(UObjectiveComponent* ObjectiveComponent, EObjectiveState ObjectiveState);
 
 private:
 	//Null pointer member of type UUserWidget
 	UUserWidget* ObjectiveWidget = nullptr;
+
+	//Add/remove them
+	//Sign up for callback onchanged
+	TArray<UObjectiveComponent*> Objectives;
 };

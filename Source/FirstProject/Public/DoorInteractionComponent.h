@@ -48,6 +48,7 @@ public:
 	//Callback function signature. Not sure what this is used for yet.
 	FOpened& OnOpened() { return OpenedEvent; }
 
+	void OnDoorOpen();
 	static void OnDebugToggled(IConsoleVariable* Var);
 	void DebugDraw();
 
