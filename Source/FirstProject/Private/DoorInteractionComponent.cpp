@@ -64,6 +64,8 @@ void UDoorInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 			APawn* PlayerPawn = GetWorld()->GetFirstPlayerController()->GetPawn();
 			CurrentRotation = GetOwner()->GetActorRotation();
 
+			Test(DeltaTime);
+
 			//We need to know which direction the door is going to open, so check both front and back BoxTriggers
 			if (PlayerPawn && BoxTriggerBack->IsOverlappingActor(PlayerPawn))
 			{
@@ -75,6 +77,11 @@ void UDoorInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 			{
 				DoorState = EDoorState::DS_OpeningBackwards;
 				CurrentRotationTime = 0.0f; //Experiment with removing these after
+			}
+
+			if (CurrentRotationTime >= 1.0f)
+			{
+				OnDoorOpen();
 			}
 		}
 	}
@@ -93,6 +100,8 @@ void UDoorInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 		{
 			//Use returned value from FMath::Lerp to update actor rotation
 			FRotator NewRotation = FMath::Lerp(StartRotation, FrontRotation, AlphaRotation);
+			
+			//Could cut down on GetOwner()
 			GetOwner()->SetActorRotation(NewRotation);
 		}
 
@@ -149,19 +158,33 @@ void UDoorInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 			}
 		}
 	}
-
-	DebugDraw();
+	DebugDraw();	
 }
 
+void UDoorInteractionComponent::Test(float delta)
+{
+	//Passed from tick
+	UE_LOG(LogTemp, Warning, TEXT("Time: %f"), delta);
+}
+
+//Doing this here isn't ideal:
+//Objective complete, update state
 void UDoorInteractionComponent::OnDoorOpen()
 {
 	DoorState = EDoorState::DS_Open;
+
+	//Get the ObjectiveComponent on this actor
 	UObjectiveComponent* ObjectiveComponent = GetOwner()->FindComponentByClass<UObjectiveComponent>();
+	
+	//If found, update state of the objective via SetState in ObjectiveComponent
 	if (ObjectiveComponent)
 	{
+		/*	EObjectiveState is the type of the enum in ObjectiveComponent.So we are showing what value the state needs to be updated too. 
+			This is then broadcasted from ObjectiveComponent so the WorldSubsystem is aware	*/
 		ObjectiveComponent->SetState(EObjectiveState::OS_Completed);
 	}
 
+	//Display temp text to show when the door is fully open
 	GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Yellow, TEXT("Door Opened"));
 }
 

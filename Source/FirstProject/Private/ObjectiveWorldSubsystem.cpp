@@ -6,6 +6,7 @@
 
 void UObjectiveWorldSubsystem::CreateObjectiveWidget(TSubclassOf<UUserWidget> ObjectiveWidgetClass)
 {
+	//If the pointer to the objective widget is null, create a new objective widget and point to it
 	if (ObjectiveWidget == nullptr)
 	{
 		//Get the player contoller inside the world
@@ -23,14 +24,17 @@ void UObjectiveWorldSubsystem::DisplayObjectiveWidget()
 	ObjectiveWidget->AddToViewport();
 }
 
+//Get the details of the objective so the widget knows what to display
 FString UObjectiveWorldSubsystem::GetCurrentObjectiveDescription()
 {
+	//If there are no objectives in the array, display N/A
 	if (!Objectives.IsValidIndex(0) || Objectives[0]->GetState() == EObjectiveState::OS_Inactive)
 	{
 		return TEXT("N/A");
 	}
 
 	//We always get the first element in objectives, I need to expand on this logic to display multiple objectives/active objectives etc (what is relevant to the player)
+	//Work out how to get the desired ObjectiveDescrition here to check against in the array
 	FString RetObjective = Objectives[0]->GetDescription();
 	if (Objectives[0]->GetState() == EObjectiveState::OS_Completed)
 	{
@@ -49,6 +53,8 @@ void UObjectiveWorldSubsystem::AddObjective(UObjectiveComponent* ObjectiveCompon
 
 	if (Objectives.Num() > PrevSize)
 	{
+		/*	Binding FStateChanged event delegate to ObjectiveStateChanged when the objective is first added			
+			When OnStateChanged calls broadcast, we will call our function on objective state changed	*/
 		ObjectiveComponent->OnStateChanged().AddUObject(this, &UObjectiveWorldSubsystem::OnObjectiveStateChanged);
 	}
 }
@@ -58,8 +64,7 @@ void UObjectiveWorldSubsystem::RemoveObjective(UObjectiveComponent* ObjectiveCom
 	Objectives.Remove(ObjectiveComponent);
 }
 
-//This Subsystem could have many different objectives so we pass in the component and state so we can update the objective widget correctly.
-//We don't do anything with it now, but it will be handy in future.
+//When an objective state is changed, display the widget using the details from the objective component passed in
 void UObjectiveWorldSubsystem::OnObjectiveStateChanged(UObjectiveComponent* ObjectiveComponent, EObjectiveState ObjectiveState)
 {
 	DisplayObjectiveWidget();

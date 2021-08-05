@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -15,9 +13,9 @@ UCLASS()
 	Setup the ObjectiveHere (C++ Class) here so ObjectiveWorldSubsystem has the responsibility of the ObjectiveWidget
 	UObjectiveSubsystem <- UWorldSubsystem <- USubsystem <- UObject <- UObjectBaseUtility <- UObjectBase   */
 		
-/*	The object responsible for the objective is ObjectiveWidget(type UUserWidget*, derived from UWidget)	
-	The objective widget is created in the WorldSubsystem. Display and Create functions are also here
-	UUserWidget <- UWidget <- UVisual <- UObject <- UObjectBaseUtility <- UObjectBase	*/
+/*	The ObjectiveWorldSubsystem handles all objectives in the world and the widget which displays the objective details
+	Contains the array of objectives (stores them all)
+	ObjectiveComponent gets a pointer to this WorldSubsystem so it can call the methods here for each objective when needed	*/
 	
 class FIRSTPROJECT_API UObjectiveWorldSubsystem : public UWorldSubsystem
 {
@@ -28,20 +26,22 @@ public:
 	void CreateObjectiveWidget(TSubclassOf<UUserWidget> ObjectiveWidgetClass);
 	void DisplayObjectiveWidget();
 
-	//This function is access in the widget blueprints
+	//This will search through the objectives array to find the information specific to the objective
 	UFUNCTION(BlueprintCallable)
 	FString GetCurrentObjectiveDescription();
 
+	//Add a new objective (ObjectiveComponent instance)
 	UFUNCTION(BlueprintCallable)
 	void AddObjective(UObjectiveComponent* ObjectiveComponent);
-
+	
 	UFUNCTION(BlueprintCallable)
 	void RemoveObjective(UObjectiveComponent* ObjectiveComponent);
 
+	//Broadcasted by StateChangedEvent in ObjectiveComponent when an objective state is changed
 	void OnObjectiveStateChanged(UObjectiveComponent* ObjectiveComponent, EObjectiveState ObjectiveState);
 
 private:
-	//Null pointer member of type UUserWidget
+	//Null pointer which will point to the objective widget
 	UUserWidget* ObjectiveWidget = nullptr;
 
 	//Add/remove them

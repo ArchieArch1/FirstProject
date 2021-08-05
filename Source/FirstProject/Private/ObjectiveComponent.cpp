@@ -1,26 +1,28 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "ObjectiveComponent.h"
 #include "ObjectiveWorldSubsystem.h"
 
-// Sets default values for this component's properties
+//Objective component constructor, sets default state but this is also done in the editor
 UObjectiveComponent::UObjectiveComponent()
 {	
 	PrimaryComponentTick.bCanEverTick = false;
 	State = EObjectiveState::OS_Inactive;
 }
 
+/*	Method to update the state on the objective component itself
+	When a state is updated, it is broadcasted (the binded method in ObjectiveWorldSubsystem is called)	*/
 void UObjectiveComponent::SetState(EObjectiveState NewState)
 {
 	if (NewState != State)
 	{
+		//Update the objective state member value, only if the new state is not the same as the current state
 		State = NewState;
+		//This will call method OnObjectiveStateChanged in ObjectiveWorldSubsystem
 		StateChangedEvent.Broadcast(this, State);
 	}
 }
 
-// Called when the game starts
+/*	At the start of the game, add this objective to the ObjectiveWorldSubsystem
+	Each objective component belongs to 1 objective, there can be multiple	*/
 void UObjectiveComponent::BeginPlay()
 {
 	Super::BeginPlay();
@@ -32,6 +34,7 @@ void UObjectiveComponent::BeginPlay()
 	}
 }
 
+//Remove the objective when the game ends
 void UObjectiveComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	UObjectiveWorldSubsystem* ObjectiveWorldSubsystem = GetWorld()->GetSubsystem<UObjectiveWorldSubsystem>();

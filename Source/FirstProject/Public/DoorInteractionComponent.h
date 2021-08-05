@@ -51,6 +51,7 @@ public:
 	void OnDoorOpen();
 	static void OnDebugToggled(IConsoleVariable* Var);
 	void DebugDraw();
+	void Test(float delta);
 
 protected:
 	// Called when the game starts
